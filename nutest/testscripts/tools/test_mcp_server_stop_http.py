@@ -1,15 +1,12 @@
 #!/usr/bin/env python3
 """
-Unittest: HTTP transport MCP server tool schema validation using TestML_BaseTestClass.
-- Start server with only `fetch_data` tool
-- Use HTTP client to list tools and validate input schema
+Unittest: Stop MCP server (HTTP) using TestML_BaseTestClass and verify registry cleanup; optional client check.
 """
 from __future__ import annotations
 
 import unittest
 import time
 import socket
-from typing import Dict, Any
 
 try:
     from testML_BaseTestClass import TestML_BaseTestClass
@@ -35,7 +32,25 @@ def _find_free_port(start: int = 8000, end: int = 8100) -> int:
         return s.getsockname()[1]
 
 
-class TestMCPServerToolSchemaHTTP(TestML_BaseTestClass):
+def _try_client_list_tools(base_url: str) -> bool:
+    try:
+        from hana_ai.client.mcp_client import HTTPMCPClient
+        import asyncio
+        client = HTTPMCPClient(base_url=base_url, timeout=5)
+        try:
+            asyncio.run(client.initialize())
+            _ = asyncio.run(client.list_tools())
+            return True
+        finally:
+            try:
+                asyncio.run(client.close())
+            except Exception:
+                pass
+    except Exception:
+        return False
+
+
+class TestMCPStopHTTP(TestML_BaseTestClass):
     def setUp(self):
         super().setUp()
         from hana_ai.tools.toolkit import HANAMLToolkit
@@ -52,36 +67,16 @@ class TestMCPServerToolSchemaHTTP(TestML_BaseTestClass):
         finally:
             super().tearDown()
 
-    def _get_tools_via_http_client(self) -> Dict[str, Any]:
-        from hana_ai.client.mcp_client import HTTPMCPClient
-        import asyncio
+    def test_stop_server_registry_cleanup(self):
+        key = ("127.0.0.1", self.port, "http")
+        self.assertIn(key, self.tk.mcp_servers, "Server not registered after launch")
 
-        client = HTTPMCPClient(base_url=self.base_url, timeout=10)
-        try:
-            asyncio.run(client.initialize())
-            tools = asyncio.run(client.list_tools())
-        finally:
-            try:
-                asyncio.run(client.close())
-            except Exception:
-                pass
+        # Optional client reachability before stop
+        _ = _try_client_list_tools(self.base_url)
 
-        return {t.name: t for t in tools}
+        _ = self.tk.stop_mcp_server(host="127.0.0.1", port=self.port, transport="http", force=True, timeout=3.0)
 
-    def test_fetch_data_schema(self):
-        tools_by_name = self._get_tools_via_http_client()
-        self.assertIn("fetch_data", tools_by_name, "fetch_data tool not found in tools list")
-        fetch_tool = tools_by_name["fetch_data"]
-
-        schema = fetch_tool.inputSchema or {}
-        props = schema.get("properties", {})
-        required = schema.get("required", []) or []
-
-        self.assertIn("table_name", required, "'table_name' should be in required list")
-
-        # HTTP wrapper may omit per-parameter descriptions; validate presence of keys instead
-        for key in ("table_name", "schema_name", "top_n", "last_n"):
-            self.assertIn(key, props, f"Missing parameter key: {key}")
+        self.assertNotIn(key, self.tk.mcp_servers, "Server registry was not cleaned up")
 
 
 if __name__ == "__main__":
