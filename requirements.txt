@@ -12,3 +12,5 @@ pydantic>=2.11,<2.13
 sap-ai-sdk-gen[all]==5.10.0
 
 fastmcp>=2.0
+
+ipython

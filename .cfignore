@@ -1,0 +1,16 @@
+# Exclude everything by default
+*
+
+# But include the src directory and its contents
+!src/
+!src/**
+
+# Include necessary files for the app
+!manifest.yaml
+!requirements.txt
+!Procfile
+!.profile
+!pyproject.toml
+!README.md
+!examples/
+!examples/**

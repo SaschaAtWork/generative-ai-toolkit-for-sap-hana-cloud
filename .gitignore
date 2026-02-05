@@ -164,3 +164,6 @@ nutest/testscripts/visualizers/temp/
 *.DS_Store
 *.log
 *mlruns
+
+# Cloud Foundry sensitive variables
+vars.yaml

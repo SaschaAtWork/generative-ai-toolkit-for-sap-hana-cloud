@@ -10,7 +10,6 @@ The following classes are available:
 
 from typing import Optional, Type
 
-from cv2 import add
 from pydantic import BaseModel, Field
 from langchain_core.tools import BaseTool
 
@@ -44,8 +43,8 @@ class DiscoveryAgentTool(BaseTool):
     description: str = "Tool for discovering HANA objects via knowledge graph."
     connection_context : ConnectionContext = None
     """Connection context to the HANA database."""
-    remote_source_name: str = "HANA_DISCOVERY_AGENT_CREDENTIALS"
-    rag_schema_name: str = "SYSTEM"
+    remote_source_name: str = "GENAIHUB_SOURCE"
+    rag_schema_name: str = "DBADMIN"
     rag_table_name: str = "RAG"
     knowledge_graph_name: str = "HANA_OBJECTS"
     args_schema: Type[BaseModel] = HANAAgentToolInput
@@ -141,8 +140,8 @@ class DataAgentTool(BaseTool):
     description: str = "Tool for interacting with Data Agent."
     connection_context : ConnectionContext = None
     """Connection context to the HANA database."""
-    remote_source_name: str = "HANA_DISCOVERY_AGENT_CREDENTIALS"
-    rag_schema_name: str = "SYSTEM"
+    remote_source_name: str = "GENAIHUB_SOURCE"
+    rag_schema_name: str = "DBADMIN"
     rag_table_name: str = "RAG"
     knowledge_graph_name: str = "HANA_OBJECTS"
     args_schema: Type[BaseModel] = HANAAgentToolInput

@@ -1,0 +1,12 @@
+---
+applications:
+- name: hana-mcp
+  memory: 1G
+  disk_quota: 2G
+  instances: 1
+  buildpacks:
+    - python_buildpack
+  env:
+    HANA_ADDRESS: ((hana_address))
+    HANA_USER: ((hana_user))
+    HANA_PASSWORD: ((hana_password))
